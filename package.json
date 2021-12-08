@@ -16,7 +16,7 @@
     "url": "https://github.com/dombaigabor/vue-pdf/issues"
   },
   "homepage": "https://github.com/dombaigabor/vue-pdf",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "vue.js pdf viewer (forked from FranckFreiburger/vue-pdf)",
   "main": "dist/vue-pdf.ssr.js",
   "browser": "dist/vue-pdf.esm.js",
