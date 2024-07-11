@@ -102,28 +102,26 @@ export default class PdfJsWrapper {
         const PRINT_UNITS = PRINT_RESOLUTION / 72.0;
         const CSS_UNITS = 96.0 / 72.0;
 
-        const iframeElt = document.createElement('iframe');
+        const printContainerElement = document.createElement("div");
+        printContainerElement.setAttribute("id", "print-container")
 
-        const removeIframe = () => {
-            if (iframeElt && iframeElt.parentNode) {
-                iframeElt.parentNode.removeChild(iframeElt);
+        const removePrintContainer = () => {
+            if (printContainerElement && printContainerElement.parentNode) {
+                printContainerElement.parentNode.removeChild(printContainerElement);
             }
         }
 
         new Promise<Window | null>((resolve) => {
-            iframeElt.frameBorder = '0';
-            iframeElt.scrolling = 'no';
-            iframeElt.width = '0px;'
-            iframeElt.height = '0px;'
-            iframeElt.style.cssText = 'position: absolute; top: 0; left: 0';
+            printContainerElement.style.width = "0px;"
+            printContainerElement.style.height = "0px;"
+            printContainerElement.style.position = "absolute;"
+            printContainerElement.style.top = "0;"
+            printContainerElement.style.left = "0;"
+            printContainerElement.style.overflow = "hidden;"
 
-            iframeElt.onload = () => {
-                resolve(iframeElt.contentWindow);
-            }
-
-            window.document.body.appendChild(iframeElt);
-        })
-            .then((win) => {
+            window.document.body.appendChild(printContainerElement);
+            resolve(window)
+        }).then((win) => {
                 if (win) {
                     win.document.title = '';
 
@@ -131,21 +129,17 @@ export default class PdfJsWrapper {
                         .then((page) => {
 
                             const viewport = page.getViewport({scale: 1});
-                            win.document.head.appendChild(win.document.createElement('style')).textContent =
+                            printContainerElement.appendChild(win.document.createElement('style')).textContent =
                                 '@supports ((size:A4) and (size:1pt 1pt)) {' +
                                 '@page { margin: 1pt; size: ' + ((viewport.width * PRINT_UNITS) / CSS_UNITS) + 'pt ' + ((viewport.height * PRINT_UNITS) / CSS_UNITS) + 'pt; }' +
                                 '}' +
 
+                                '#print-canvas { display: none }' +
+
                                 '@media print {' +
-                                'body { margin: 0 }' +
-                                'canvas { page-break-before: avoid; page-break-after: always; page-break-inside: avoid }' +
-                                '}' +
-
-                                '@media screen {' +
-                                'body { margin: 0 }' +
-                                '}' +
-
-                                ''
+                                '#print-canvas { page-break-before: avoid; page-break-after: always; page-break-inside: avoid; display: block }' +
+                                'body > *:not(#print-container) { display: none; }' +
+                                '}' 
                             return win;
                         })
                 }
@@ -166,7 +160,8 @@ export default class PdfJsWrapper {
                                     .then((page) => {
                                         const viewport = page.getViewport({scale: 1});
 
-                                        const printCanvasElt = win.document.body.appendChild(win.document.createElement('canvas'));
+                                        const printCanvasElt = printContainerElement.appendChild(win.document.createElement('canvas'));
+                                        printCanvasElt.setAttribute('id', 'print-canvas')
                                         printCanvasElt.width = (viewport.width * PRINT_UNITS);
                                         printCanvasElt.height = (viewport.height * PRINT_UNITS);
 
@@ -193,10 +188,10 @@ export default class PdfJsWrapper {
                             } else {
                                 win.print();
                             }
-                            removeIframe();
+                            removePrintContainer();
                         })
                         .catch((err) => {
-                            removeIframe();
+                            removePrintContainer();
                             this.emitEvent('error', err);
                         })
                 }

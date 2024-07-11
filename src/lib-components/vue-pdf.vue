@@ -8,7 +8,7 @@
 
 <script lang="ts">
 import resizeSensor from "vue-resize-sensor";
-import PdfJsWrapper from "@/PdfJsWrapper";
+import PdfJsWrapper from "../PdfJsWrapper";
 import Vue from "vue";
 
 declare interface VuePdfData {
